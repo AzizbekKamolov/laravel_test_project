@@ -1,0 +1,10 @@
+POST http://localhost:9800/api/categories/store
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "Samsung A72",
+    "category_id": 2
+
+}
+
