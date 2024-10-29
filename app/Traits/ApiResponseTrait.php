@@ -20,7 +20,7 @@ trait ApiResponseTrait
             "message" => $message
         ]);
     }
-    public function paginateRes(object $data = null): JsonResponse
+    public function paginateRes($data = null): JsonResponse
     {
         return response()->json($data);
     }

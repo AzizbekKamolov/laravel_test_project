@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Filters\Trait\EloquentFilterTrait;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id;
@@ -13,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class CategoryModel extends Model
 {
+    use EloquentFilterTrait;
     protected $table = 'categories';
     protected $fillable = [
         "name",
@@ -20,4 +23,12 @@ class CategoryModel extends Model
         "created_at",
         "updated_at",
     ];
+
+    /**
+     * @return HasMany
+     */
+    public function categories():HasMany
+    {
+        return $this->hasMany(self::class, 'category_id', 'id');
+    }
 }

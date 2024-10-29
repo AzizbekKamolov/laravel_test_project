@@ -1,12 +1,7 @@
 <?php
 
-use App\Http\Controllers\Api\CategoryController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\{CategoryController, ProviderController};
 use Illuminate\Support\Facades\Route;
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
 
 Route::prefix('categories')->group(function () {
     Route::get('/', [CategoryController::class, 'index']);
@@ -14,4 +9,13 @@ Route::prefix('categories')->group(function () {
     Route::get('/{id}', [CategoryController::class, 'getOne']);
     Route::put('/{id}', [CategoryController::class, 'update']);
     Route::delete('/{id}', [CategoryController::class, 'destroy']);
+
+});
+Route::prefix('providers')->name('providers.')->group(function () {
+    Route::get('/', [ProviderController::class, 'index'])->name('index');
+    Route::post('/store', [ProviderController::class, 'store'])->name('store');
+    Route::get('/{id}', [ProviderController::class, 'getOne'])->name('getOne');
+    Route::put('/{id}', [ProviderController::class, 'update'])->name('update');
+    Route::delete('/{id}', [ProviderController::class, 'destroy'])->name('destroy');
+
 });
