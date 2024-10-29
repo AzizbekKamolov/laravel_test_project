@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->unsignedBigInteger('category_id');
-            $table->integer('quantity');
-            $table->decimal('amount', 2, 0);
             $table->timestamps();
         });
     }
