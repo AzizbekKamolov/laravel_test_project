@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 use App\Filters\Category\CategoryFilter;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
+use App\Http\Requests\CategoryUpdateRequest;
 use App\Models\CategoryModel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class CategoryController extends Controller
 
         $categories = CategoryModel::applyEloquentFilters($filters)
 //            ->with('categories')
-            ->select('id', 'name', 'category_id')
+            ->select('id', 'name', 'category_id', 'provider_id')
             ->paginate($request->get('per_page', 10));
         return $this->paginateRes($categories);
     }
@@ -33,7 +34,12 @@ class CategoryController extends Controller
      */
     public function store(CategoryRequest $request): JsonResponse
     {
-        CategoryModel::query()->create($request->validated());
+        $data = $request->validated();
+
+        if (isset($data['category_id'])) {
+            unset($data['provider_id']);
+        }
+        CategoryModel::query()->create($data);
         return $this->successRes();
     }
 
@@ -51,12 +57,12 @@ class CategoryController extends Controller
     }
 
     /**
-     * @param CategoryRequest $request
+     * @param CategoryUpdateRequest $request
      * @param int $id
      * @return JsonResponse
      */
 
-    public function update(CategoryRequest $request, int $id): JsonResponse
+    public function update(CategoryUpdateRequest $request, int $id): JsonResponse
     {
         $category = CategoryModel::query()->find($id);
         if (!$category) {

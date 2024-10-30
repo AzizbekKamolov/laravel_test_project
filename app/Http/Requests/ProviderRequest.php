@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class ProviderRequest extends FormRequest
 {
@@ -25,17 +24,9 @@ class ProviderRequest extends FormRequest
         if ($this->routeIs('providers.update'))
             return [
                 "name" => "required|unique:providers,name," . $this->route()->parameter('id'),
-                "category_id" => [
-                    "required",
-                    Rule::exists('categories', 'id')->whereNull('category_id')
-                ]
             ];
         return [
             "name" => "required|unique:providers,name",
-            "category_id" => [
-                "required",
-                Rule::exists('categories', 'id')->whereNull('category_id')
-            ]
         ];
     }
 }

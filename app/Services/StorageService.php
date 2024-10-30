@@ -3,12 +3,14 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\BatchModel;
 use App\Models\CategoryModel;
+use App\Models\OrderModel;
 use App\Models\ProductModel;
-use App\Models\ProviderModel;
 use App\Models\StorageModel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class StorageService
 {
@@ -18,36 +20,43 @@ class StorageService
      */
     public function buyingProducts(Request $request): JsonResponse
     {
-        $batch = $this->getBatch();
+        $batch = $this->getLastBatch();
         $result = [];
-        foreach ($request->get('batches') as $item => $value) {
+        foreach ($request->get('products') as $value) {
             $product = $this->getProduct($value['product_id']);
-            $provider = $this->getProviderByCategoryId($product->category_id, $value['provider_id']);
+            $provider = $this->checkProviderByCategoryId($product->category_id, $request->get('provider_id'));
+
             if (!$provider) {
                 return response()->json([
-                    "status" => "false",
-                    "message" => "The batches.$item.provider_id field is invalid",
+                    "status" => false,
+                    "message" => "The provider_id field is invalid",
                     "errors" => [
-                        "batches.provider_id" => [
-                            "The batches.$item.provider_id field is invalid"
+                        "provider_id" => [
+                            "The provider_id field is invalid"
                         ]
                     ],
-                    "code" => 422
                 ], 422);
             }
             $result[] = [
-                "provider_id" => $value['provider_id'],
                 "product_id" => $value['product_id'],
                 "quantity" => $value['quantity'],
-                "residual" => $value['quantity'],
+                "refund_residual" => $value['quantity'],
+                "sell_residual" => $value['quantity'],
                 "amount" => $value['amount'],
-                "batch" => $batch,
                 "created_at" => date("Y-m-d H:i:s"),
                 "updated_at" => date("Y-m-d H:i:s"),
             ];
 
         }
+        $batchModel = BatchModel::query()->create([
+            "provider_id" => $request->get('provider_id'),
+            "batch" => $batch
+        ]);
+
+        array_walk($result, fn(&$arr) => $arr["batch_id"] = $batchModel->id);
+
         StorageModel::query()->insert($result);
+
         return response()->json([
             "status" => true,
             "message" => "successfully"
@@ -57,18 +66,16 @@ class StorageService
     /**
      * @param int $categoryId
      * @param int $providerId
-     * @return ProviderModel|null
+     * @return bool
      */
-    public function getProviderByCategoryId(int $categoryId, int $providerId): ?ProviderModel
+    public function checkProviderByCategoryId(int $categoryId, int $providerId): bool
     {
         do {
             $category = $this->getCategory($categoryId);
             $categoryId = $category->category_id;
         } while ($category->category_id);
-        return ProviderModel::query()
-            ->where('id', '=', $providerId)
-            ->where('category_id', '=', $category->id)
-            ->first();
+
+        return $category->provider_id === $providerId;
     }
 
     /**
@@ -92,59 +99,106 @@ class StorageService
     /**
      * @return int
      */
-    public function getBatch(): int
+    public function getLastBatch(): int
     {
-        $batch = StorageModel::query()
+        $batch = BatchModel::query()
             ->orderByDesc('batch')
             ->first()?->batch;
 
         return ++$batch;
     }
 
-    public function refund(Request $request):JsonResponse
+    public function refund(Request $request): JsonResponse
     {
-        foreach ($request->get('batches') as $item => $value) {
-            $storage = StorageModel::query()
-                ->where('batch', '=', $value['batch'])
-                ->where('product_id', '=', $value['product_id'])
-                ->first();
-            if (!$storage) {
-                return response()->json([
-                    "status" => "false",
-                    "message" => "The batches.$item.batch field is invalid",
-                    "errors" => [
-                        "batches.$item.batch" => [
-                            "The batches.$item.batch field is invalid"
-                        ]
-                    ],
-                    "code" => 422
-                ], 422);
-            }
-            $residual = $storage->residual - $value['quantity'];
-
-            if ($residual < 0) {
-                return response()->json([
-                    "status" => "false",
-                    "message" => "The batches.$item.quantity field is invalid",
-                    "errors" => [
-                        "batches.$item.quantity" => [
-                            "The batches.$item.quantity field is invalid"
-                        ]
-                    ],
-                    "code" => 422
-                ], 422);
-            }
-            StorageModel::query()
-                ->where('batch', '=', $value['batch'])
-                ->where('product_id', '=', $value['product_id'])
-                ->update([
-                    "residual" => $residual
-                ]);
-
+        $batch = BatchModel::query()->where('batch', '=', $request->get('batch'))->first();
+        $storage = StorageModel::query()
+            ->where('batch_id', '=', $batch->id)
+            ->where('product_id', '=', $request->get('product_id'))
+            ->first();
+        if (!$storage) {
+            return response()->json([
+                "status" => false,
+                "message" => "The batch field is invalid",
+                "errors" => [
+                    "batch" => [
+                        "The batch field is invalid"
+                    ]
+                ],
+            ], 422);
         }
+        $residual = $storage->refund_residual - $request->get('quantity');
+
+        if ($residual < 0) {
+            return response()->json([
+                "status" => false,
+                "message" => "The quantity field is invalid",
+                "errors" => [
+                    "quantity" => [
+                        "The quantity field is invalid"
+                    ]
+                ],
+            ], 422);
+        }
+        $storage->update([
+            "refund_residual" => $residual,
+            "refunded_amount" => DB::raw("refunded_amount + " . $request->get('amount'))
+        ]);
+
         return response()->json([
             "status" => true,
             "message" => "successfully"
+        ]);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function makeOrder(Request $request): JsonResponse
+    {
+
+        $result = [];
+        $batch = BatchModel::query()->where('batch', '=', $request->get('batch'))->first();
+        foreach ($request->get('products') as $item => $value) {
+            $storage = StorageModel::query()
+                ->where('product_id', '=', $value['product_id'])
+                ->where('batch_id', '=', $batch->id)
+                ->where('sell_residual', '>=', $value['quantity'])
+                ->first();
+
+            if (!$storage) {
+                return response()->json([
+                    "status" => false,
+                    "message" => "There is not enough product in storage",
+                    "errors" => [
+                        "products.$item.quantity" => [
+                            "The products.$item.quantity field is invalid"
+                        ]
+                    ],
+                ], 422);
+            }
+            $result[] = [
+                "client_id" => $request->get('client_id'),
+                "product_id" => $value['product_id'],
+                "quantity" => $value['quantity'],
+                "batch" => $batch->batch,
+                "amount" => $value['amount'],
+                "created_at" => date("Y-m-d H:i:s"),
+                "updated_at" => date("Y-m-d H:i:s"),
+            ];
+        }
+        foreach ($result as $order) {
+            StorageModel::query()
+                ->where('product_id', '=', $order['product_id'])
+                ->where('batch_id', '=', $batch->id)
+                ->update([
+                    "sell_residual" => DB::raw("sell_residual - {$order['quantity']}"),
+                ]);
+        }
+        OrderModel::query()->insert($result);
+        return response()->json([
+            "status" => true,
+            "message" => "Successfully",
         ]);
     }
 }

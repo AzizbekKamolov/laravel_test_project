@@ -10,15 +10,13 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('storages', function (Blueprint $table) {
+        Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('product_id');
             $table->unsignedInteger('quantity');
-            $table->unsignedInteger('refund_residual');
-            $table->unsignedInteger('sell_residual');
+            $table->unsignedInteger('batch');
             $table->unsignedBigInteger('amount');
-            $table->unsignedBigInteger('refunded_amount')->default(0);
-            $table->unsignedBigInteger('batch_id');
             $table->timestamps();
         });
     }
@@ -28,6 +26,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('storages');
+        Schema::dropIfExists('orders');
     }
 };

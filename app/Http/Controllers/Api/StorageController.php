@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BuyingProductsRequest;
+use App\Http\Requests\MakeOrderRequest;
 use App\Http\Requests\RefundRequest;
 use App\Models\StorageModel;
 use App\Services\StorageService;
@@ -18,16 +19,28 @@ class StorageController extends Controller
 
     }
 
+    /**
+     * @param BuyingProductsRequest $request
+     * @return JsonResponse
+     */
     public function buyingProducts(BuyingProductsRequest $request): JsonResponse
     {
         return $this->service->buyingProducts($request);
     }
 
+    /**
+     * @param RefundRequest $request
+     * @return JsonResponse
+     */
     public function refund(RefundRequest $request): JsonResponse
     {
         return $this->service->refund($request);
     }
 
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function getProducts(Request $request): JsonResponse
     {
         $products = StorageModel::query()
@@ -41,8 +54,18 @@ class StorageController extends Controller
         return $this->paginateRes($products);
     }
 
-    public function makeOrder()
+    /**
+     * @param MakeOrderRequest $request
+     * @return JsonResponse
+     */
+    public function makeOrder(MakeOrderRequest $request): JsonResponse
+    {
+        return $this->service->makeOrder($request);
+    }
+
+    public function calculateProfit(int $batchId)
     {
 
+        dd($batchId);
     }
 }

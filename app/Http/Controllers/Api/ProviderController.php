@@ -21,7 +21,7 @@ class ProviderController extends Controller
 
         $providers = ProviderModel::applyEloquentFilters($filters)
 //            ->with('categories')
-            ->select('id', 'name', 'category_id')
+            ->select('id', 'name')
             ->paginate($request->get('per_page', 10));
         return $this->paginateRes($providers);
     }

@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('buying-products', [StorageController::class, 'buyingProducts']);
 Route::post('refund', [StorageController::class, 'refund']);
 Route::get('get-products', [StorageController::class, 'getProducts']);
-Route::get('make-order', [StorageController::class, 'makeOrder']);
+Route::post('make-order', [StorageController::class, 'makeOrder']);
+Route::get('profit/{batchId}', [StorageController::class, 'calculateProfit']);
 
 
 Route::prefix('categories')->group(function () {
@@ -45,5 +46,4 @@ Route::prefix('clients')->name('clients.')->group(function () {
     Route::get('/{id}', [ClientController::class, 'getOne'])->name('getOne');
     Route::put('/{id}', [ClientController::class, 'update'])->name('update');
     Route::delete('/{id}', [ClientController::class, 'destroy'])->name('destroy');
-
 });

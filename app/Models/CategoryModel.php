@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id;
  * @property string $name;
  * @property int $category_id;
+ * @property int $provider_id;
  * @property string $created_at;
  * @property string $updated_at;
  */
@@ -20,6 +21,7 @@ class CategoryModel extends Model
     protected $fillable = [
         "name",
         "category_id",
+        "provider_id",
         "created_at",
         "updated_at",
     ];

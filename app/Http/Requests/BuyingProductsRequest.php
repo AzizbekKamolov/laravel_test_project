@@ -22,11 +22,11 @@ class BuyingProductsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "batches" => "required|array",
-            "batches.*.product_id" => "required|exists:products,id",
-            "batches.*.provider_id" => "required|exists:providers,id",
-            "batches.*.quantity" => "required|int",
-            "batches.*.amount" => "required|int",
+            "provider_id" => "required|exists:providers,id",
+            "products" => "required|array",
+            "products.*.product_id" => "required|exists:products,id",
+            "products.*.quantity" => "required|int",
+            "products.*.amount" => "required|int",
         ];
     }
 }

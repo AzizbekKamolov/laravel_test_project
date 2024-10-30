@@ -7,18 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property int $id;
- * @property string $name;
+ * @property int $batch;
+ * @property int $provider_id;
  * @property string $created_at;
  * @property string $updated_at;
  */
-class ClientModel extends Model
+class BatchModel extends Model
 {
     use EloquentFilterTrait;
-
-    protected $table = 'clients';
+    protected $table = 'batches';
     protected $fillable = [
-        "name",
-        "created_at",
-        "updated_at",
+      "batch",
+      "provider_id",
+      "created_at",
+      "updated_at",
     ];
 }

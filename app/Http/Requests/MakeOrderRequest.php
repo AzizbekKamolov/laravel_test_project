@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RefundRequest extends FormRequest
+class MakeOrderRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,10 +22,12 @@ class RefundRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "batch" => "required|exists:batches,batch",
-            "product_id" => "required|exists:storages,product_id",
-            "quantity" => "required|int",
-            "amount" => "required|int",
+            'client_id' => "required|exists:clients,id",
+            'batch' => "required|exists:batches,batch",
+            'products' => "required|array",
+            'products.*.product_id' => "required|exists:products,id",
+            'products.*.quantity' => "required|int",
+            'products.*.amount' => "required|int",
         ];
     }
 }

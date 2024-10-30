@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $provider_id;
  * @property int $product_id;
  * @property int $quantity;
- * @property int $residual;
+ * @property int $refund_residual;
+ * @property int $sell_residual;
  * @property int $amount;
  * @property int $refunded_amount;
- * @property int $batch;
+ * @property int $batch_id;
  * @property string $created_at;
  * @property int $updated_at;
  *
@@ -24,10 +25,11 @@ class StorageModel extends Model
         "provider_id",
         "product_id",
         "quantity",
-        "residual",
+        "refund_residual",
+        "sell_residual",
         "amount",
         "refunded_amount",
-        "batch",
+        "batch_id",
         "created_at",
         "updated_at",
     ];
