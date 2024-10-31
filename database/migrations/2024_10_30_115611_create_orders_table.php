@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('product_id');
             $table->unsignedInteger('quantity');
-            $table->unsignedInteger('batch');
+            $table->unsignedBigInteger('batch_id');
             $table->unsignedBigInteger('amount');
             $table->timestamps();
         });

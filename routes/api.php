@@ -13,7 +13,7 @@ Route::post('buying-products', [StorageController::class, 'buyingProducts']);
 Route::post('refund', [StorageController::class, 'refund']);
 Route::get('get-products', [StorageController::class, 'getProducts']);
 Route::post('make-order', [StorageController::class, 'makeOrder']);
-Route::get('profit/{batchId}', [StorageController::class, 'calculateProfit']);
+Route::get('profit/{batch}', [StorageController::class, 'calculateProfit']);
 
 
 Route::prefix('categories')->group(function () {

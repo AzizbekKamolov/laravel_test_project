@@ -7,10 +7,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\BuyingProductsRequest;
 use App\Http\Requests\MakeOrderRequest;
 use App\Http\Requests\RefundRequest;
+use App\Models\BatchModel;
+use App\Models\ProductModel;
 use App\Models\StorageModel;
 use App\Services\StorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class StorageController extends Controller
 {
@@ -43,13 +46,23 @@ class StorageController extends Controller
      */
     public function getProducts(Request $request): JsonResponse
     {
-        $products = StorageModel::query()
+        $products = ProductModel::query()
             ->select([
-                'p.id',
-                'p.name',
+                "products.id",
+                "products.name",
+                "s.sell_residual as quantity",
+                "batch",
             ])
-            ->leftJoin('products as p', 'p.id', '=', 'storages.product_id')
-            ->groupBy('storages.product_id')
+//            ->whereIn('id', function ($query){
+//                $query->from('storages')
+//                    ->select('product_id')
+//                    ->where('sell_residual', '>', 0)
+//                    ->groupBy('product_id');
+//            })
+            ->join('storages as s', 's.product_id', '=', 'products.id')
+            ->where('s.sell_residual', '>', 0)
+            ->join('batches as b', 'b.id', '=', 's.batch_id')
+            ->orderBy('products.id')
             ->paginate($request->get('per_page', 15));
         return $this->paginateRes($products);
     }
@@ -63,9 +76,29 @@ class StorageController extends Controller
         return $this->service->makeOrder($request);
     }
 
-    public function calculateProfit(int $batchId)
+    /**
+     * @param int $batch
+     * @return JsonResponse
+     */
+    public function calculateProfit(int $batch): JsonResponse
     {
-
-        dd($batchId);
+        $batchModel = BatchModel::query()->where('batch', '=', $batch)->first();
+        if (!$batchModel) {
+            return $this->errorRes('Batch not found', 404);
+        }
+        $data = StorageModel::query()
+            ->select([
+                "storages.product_id",
+                "p.name as product_name",
+                DB::raw("storages.amount - o.amount as profit"),
+                "storages.sell_residual as residual",
+            ])
+            ->join(DB::raw("(select batch_id, product_id, sum(amount) as amount from orders
+                    where batch_id = {$batchModel->id} group by product_id) as o"), function ($query) {
+                $query->on('o.batch_id', '=', 'storages.batch_id')->on('o.product_id', '=', 'storages.product_id');
+            })
+            ->join('products as p', 'p.id', '=', 'storages.product_id')
+            ->get();
+        return $this->successRes($data->toArray());
     }
 }

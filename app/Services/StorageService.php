@@ -181,7 +181,7 @@ class StorageService
                 "client_id" => $request->get('client_id'),
                 "product_id" => $value['product_id'],
                 "quantity" => $value['quantity'],
-                "batch" => $batch->batch,
+                "batch_id" => $batch->id,
                 "amount" => $value['amount'],
                 "created_at" => date("Y-m-d H:i:s"),
                 "updated_at" => date("Y-m-d H:i:s"),

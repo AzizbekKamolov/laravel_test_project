@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $client_id;
  * @property int $product_id;
  * @property int $quantity;
- * @property int $batch;
+ * @property int $batch_id;
  * @property int $amount;
  * @property string $created_at;
  * @property string $updated_at;
@@ -24,7 +24,7 @@ class OrderModel extends Model
         "client_id",
         "product_id",
         "quantity",
-        "batch",
+        "batch_id",
         "amount",
         "created_at",
         "updated_at",
