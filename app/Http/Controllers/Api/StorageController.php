@@ -54,8 +54,8 @@ class StorageController extends Controller
                 "batch",
             ])
             ->join('storages as s', 's.product_id', '=', 'products.id')
-            ->where('s.sell_residual', '>', 0)
             ->join('batches as b', 'b.id', '=', 's.batch_id')
+            ->where('s.sell_residual', '>', 0)
             ->orderBy('products.id')
             ->paginate($request->get('per_page', 15));
         return $this->paginateRes($products);
