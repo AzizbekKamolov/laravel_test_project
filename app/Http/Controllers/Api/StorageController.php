@@ -53,12 +53,6 @@ class StorageController extends Controller
                 "s.sell_residual as quantity",
                 "batch",
             ])
-//            ->whereIn('id', function ($query){
-//                $query->from('storages')
-//                    ->select('product_id')
-//                    ->where('sell_residual', '>', 0)
-//                    ->groupBy('product_id');
-//            })
             ->join('storages as s', 's.product_id', '=', 'products.id')
             ->where('s.sell_residual', '>', 0)
             ->join('batches as b', 'b.id', '=', 's.batch_id')
